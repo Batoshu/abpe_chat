@@ -56,7 +56,12 @@
         refreshUsers() {
             const list = document.querySelector('#chat-online-list');
             list.innerHTML = '';
-            for(const [_, user] of User.users) {
+            const arr = Array.from(User.users.values()).sort((a, b) => {
+                if (a.status !== b.status) return a.status < b.status ? 1 : -1;
+                else return a.nickname < b.nickname ? -1 : 1;
+            });
+
+            for(const user of arr) {
                 list.append(user.element);
                 user.render().catch(console.error);
             }
@@ -66,24 +71,31 @@
     /* Fetched user */
     class User {
         static users = new Map();
-        static async get(userUuid) {
-            if (this.users.has(userUuid))
-                return this.users.get(userUuid);
-            return null;
-            // TODO: Implement user data fetcher from server when not found in cache
+
+        /**
+         * Get user object
+         * @param data
+         * @returns {User|undefined}
+         */
+        static get(data) {
+            if (!data.uuid || !data.nickname) return; // Most likely not a user object
+
+            if (this.users.has(data.uuid))
+                return this.users.get(data.uuid);
+
+            const user = new User(data);
+
+            this.users.set(data.uuid, user);
+            ui.refreshUsers();
+            return user;
         }
 
         constructor(data) {
-            if (User.users.has(data.uuid)) User.users.get(data.uuid);
-
             this.uuid = data.uuid;
             this.nickname = data.nickname;
-            this.ip = data.latestIp;
-            this.status = null;
-
+            this.ip = data.ip;
+            this.status = 'offline';
             this.element = document.createElement('li');
-            User.users.set(this.uuid, this);
-            ui.refreshUsers();
         }
 
         setOffline() {
@@ -98,10 +110,12 @@
 
         async render() {
             const element = this.element;
+            element.id = `user_${this.uuid}`;
+            element.setAttribute('data-uuid', this.uuid);
 
             element.textContent = this.nickname;
-            element.className = this.status === 'online' ? 'text-success' :
-                this.status === 'offline' ? 'text-error' : 'text-alert';
+            element.className = this.status === 'online' ? 'user online' :
+                this.status === 'offline' ? 'user offline' : 'user unknown';
             return element;
         }
     }
@@ -128,7 +142,7 @@
         constructor(data) {
             this.uuid = data.uuid;
             this.authorUuid = data.authorUuid;
-            this.author = new User(data.author);
+            this.author = User.get(data.author);
             this.message = data.message;
             this.timestamp = new Date(data.timestamp);
 
@@ -200,7 +214,8 @@
             if (results.success) {
                 ui.hideLoginOverlay();
                 ui.alert(`Logged in as ${nickname}`, 'success');
-                new User(results.data.user);
+                const user = User.get(results.data.user);
+                user.setOnline();
 
                 // Save nickname and session token
                 localStorage.setItem('nickname', nickname);
@@ -279,10 +294,21 @@
                         break;
                     case 'update_online':
                         const online = new Set(data.online);
-                        console.log(online);
-                        User.users.forEach(u => u.setOffline());
-                        online.forEach(u => new User(u).setOnline());
-
+                        // Iterate over all users
+                        User.users.forEach(user => {
+                            const entry = data.online.find(u => u.uuid === user.uuid);
+                            if (entry) {
+                                user.setOnline();
+                                online.delete(entry);
+                            } else {
+                                user.setOffline();
+                            }
+                        });
+                        // Add all new-found users
+                        online.forEach(u => {
+                           User.get(u).setOnline();
+                        });
+                        ui.refreshUsers();
                         break;
                 }
             } else if (data.token) {

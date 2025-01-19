@@ -244,3 +244,16 @@ button:disabled, button:disabled:hover, button:disabled:focus, button:disabled:a
     border: 1px solid var(--surface-a2);
     color: var(--surface-a5);
 }
+
+li.online {
+    color: white;
+}
+
+li.offline {
+    color: gray;
+}
+
+li.unknown {
+    color: gray;
+    font-style: italic;
+}
