@@ -1,19 +1,40 @@
 (async function IIFE() {
     /* UI manager */
     const ui = {
-        get body() {return document.body},
+        setConnectionState(state) {
+            const status = document.querySelector('#chat-connection-status');
+            switch(state) {
+                case 'connected':
+                    status.textContent = 'Connected';
+                    status.className = 'text-success';
+                    break;
+                case 'disconnected':
+                    status.textContent = 'Disconnected';
+                    status.className = 'text-error';
+                    break;
+                case 'connecting':
+                    status.textContent = 'Connecting...';
+                    status.className = 'text-alert';
+                    break;
+                default:
+                    status.textContent = 'Unknown status';
+                    status.className = 'text-error';
+                    break;
+            }
+        },
         alert(message, type = 'error', persistent = false) {
+            const body = document.body;
             const alert = document.createElement('div');
             alert.classList.add('notification-box');
             alert.classList.add(type);
             alert.innerHTML = message;
 
-            ui.body.append(alert);
+            body.append(alert);
 
             let timeout;
             let remove = () => {
                 clearTimeout(timeout);
-                ui.body.removeChild(alert);
+                body.removeChild(alert);
             }
 
             alert.onclick = remove;
@@ -111,5 +132,101 @@
         }
     }
 
+    class ChatClient extends EventTarget {
+        #conn = null;
+
+        constructor() {
+            super();
+        }
+
+        async connect() {
+            if (this.#conn) return;
+            return this.#reconnect();
+        }
+
+        send(action, data, timeout = 5000) {
+            return new Promise((resolve, reject) => {
+                const token = crypto.randomUUID();
+                const message = {
+                    token: token,
+                    action: action,
+                    data: data
+                };
+
+                this.#conn.send(JSON.stringify(message));
+
+                let listener = e => {
+                    this.removeEventListener(token, listener);
+                    return resolve(e.detail)
+                };
+                this.addEventListener(token, listener);
+
+                setTimeout(() => {
+                    this.removeEventListener(token, listener);
+                    reject();
+                }, timeout);
+            });
+        }
+
+        #reconnect() {
+            return new Promise((resolve, reject) => {
+                const url = new URL(window.location.href);
+                url.pathname = '/socket';
+                url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+
+                const conn = new WebSocket(url);
+                this.#conn = conn;
+
+                conn.addEventListener('open', () => {
+                    this.#handleOpen();
+                    resolve();
+                });
+
+                conn.addEventListener('close', () => {
+                    this.#handleClose();
+                    reject();
+                })
+
+                conn.addEventListener('error', e => {
+                    this.#handleError(e);
+                    reject();
+                });
+
+                conn.addEventListener('message', this.#handleMessage.bind(this));
+            });
+        }
+
+        #handleOpen() {
+            ui.setConnectionState('connected');
+            ui.enableLoginButton();
+        }
+
+        #handleError(err) {
+            console.error(err);
+            ui.setConnectionState('disconnected');
+        }
+
+        #handleClose() {
+            console.error("Connection closed");
+            ui.setConnectionState('disconnected');
+        }
+
+        #handleMessage(message) {
+            if (!message.data) return;
+            const data = JSON.parse(message.data);
+
+            if (!data.token) return;
+            this.dispatchEvent(new CustomEvent(data.token, {detail: data}));
+        }
+    }
+
+    const client = new ChatClient();
+
+    document.addEventListener('DOMContentLoaded', async e => {
+        ui.setConnectionState('connecting');
+        await client.connect();
+
+
+    });
     window.ui = ui;
 })().catch(console.error);
