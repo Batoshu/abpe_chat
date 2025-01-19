@@ -52,6 +52,15 @@
         addMessage(message) {
             const box = document.querySelector('#chat-window');
             box.insertBefore(message.element, box.firstChild);
+        },
+        refreshUsers() {
+            const users = User.users.values();
+            const list = document.querySelector('#chat-online-list');
+            list.innerHTML = '';
+            users.forEach(user => {
+               list.append(user.element);
+               user.render().catch(console.error);
+            });
         }
     };
 
@@ -86,10 +95,6 @@
             const element = this.element;
 
             element.textContent = this.nickname;
-            if (this.status === 'online')
-                element.style.color = 'green';
-            else
-                element.style.color = 'red';
             return element;
         }
     }
@@ -168,6 +173,23 @@
             });
         }
 
+        async login(nickname, sessionToken) {
+            let results = await this.send('login', {nickname: nickname, sessionToken: sessionToken});
+            if (results.success) {
+                ui.hideLoginOverlay();
+                ui.alert(`Logged in as ${nickname}`, 'success');
+
+                if (!await User.get(results.data.user.uuid)) new User(results.data.user);
+                ui.refreshUsers();
+
+                // Save nickname and session token
+                localStorage.setItem('nickname', nickname);
+                localStorage.setItem('sessionToken', results.data.sessionToken);
+            } else {
+                ui.alert(results.message, 'error');
+            }
+        }
+
         #reconnect() {
             return new Promise((resolve, reject) => {
                 const url = new URL(window.location.href);
@@ -212,6 +234,7 @@
         }
 
         #handleMessage(message) {
+            console.log(message.data);
             if (!message.data) return;
             const data = JSON.parse(message.data);
 
@@ -225,8 +248,18 @@
     document.addEventListener('DOMContentLoaded', async e => {
         ui.setConnectionState('connecting');
         await client.connect();
+        if (localStorage.getItem('nickname') !== null && localStorage.getItem('sessionToken') !== null) {
+            await client.login(localStorage.getItem('nickname'), localStorage.getItem('sessionToken'));
+        }
 
+        // Handle login button
+        document.querySelector(`#login-button`).addEventListener('click', e => {
+            e.preventDefault();
+            const nickname = document.querySelector('#login-username').value;
+            if (!nickname || nickname.length < 3) return ui.alert('Nickname too short', 'error');
 
+            client.login(nickname).catch(console.error);
+        });
     });
     window.ui = ui;
 })().catch(console.error);
