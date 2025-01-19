@@ -4,46 +4,45 @@ import {db} from './database.mjs';
  * Represents message
  */
 export class Message {
-	static #find_stmt = db.prepare(`SELECT * FROM Messages WHERE uuid = ?`);
-
-	static #update_stmt = db.prepare(`UPDATE Messages SET
-			author_uuid = :author_uuid,
-			message = :message,
-			updated_at = :updated_at
-		WHERE uuid = :uuid`);
-
-	static #insert_stmt = db.prepare(`INSERT INTO Messages (
-            uuid,
-            author_uuid,
-            message, 
-            updated_at,
-            created_at) 
-		VALUES (
-		    :uuid,
-		    :author_uuid,
-		    :message,
-		    :updated_at,
-		    :created_at)`);
-
-	static #fetch_fifty = db.prepare(`SELECT * FROM Messages WHERE created_at < :before ORDER BY created_at DESC LIMIT 50`);
+	static #stmt = {
+		find: db.prepare(`SELECT * FROM Messages WHERE uuid = ?`),
+		update: db.prepare(`UPDATE Messages SET
+				author_uuid = :author_uuid,
+				message = :message,
+				updated_at = :updated_at
+			WHERE uuid = :uuid`),
+		insert: db.prepare(`INSERT INTO Messages (
+	            uuid,
+	            author_uuid,
+	            message, 
+	            updated_at,
+	            created_at) 
+			VALUES (
+			    :uuid,
+			    :author_uuid,
+			    :message,
+			    :updated_at,
+			    :created_at)`),
+		fetch: db.prepare(`SELECT * FROM Messages WHERE created_at < :before ORDER BY created_at DESC LIMIT :limit`)
+	}
 
 	/**
 	 * Finds message by UUID
 	 * @param uuid User UUID
 	 */
 	static find(uuid: string) : Message | undefined {
-		const results = this.#find_stmt.get(uuid);
+		const results = this.#stmt.find.get(uuid);
 		if (!results) return;
 
 		return new Message(results);
 	}
 
 	/**
-	 * Fetches 50 messages before specified date
+	 * Fetches messages before specified date
 	 * @param before Date
 	 */
-	static fetchFifty(before: Date) : Message[] {
-		const results = this.#fetch_fifty.all(before.getTime());
+	static fetchBefore(before: Date) : Message[] {
+		const results = this.#stmt.fetch.all({before: before.getTime(), limit: 50});
 		return results.map(data => new Message(data));
 	}
 
@@ -100,7 +99,7 @@ export class Message {
 		this.updatedAt = new Date();
 		if (!this.createdAt) {
 			this.createdAt = new Date();
-			Message.#insert_stmt.run({
+			Message.#stmt.insert.run({
 				uuid: this.uuid,
 				author_uuid: this.authorUuid,
 				message: this.message,
@@ -109,7 +108,7 @@ export class Message {
 			});
 		}
 
-		Message.#update_stmt.run({
+		Message.#stmt.update.run({
 			uuid: this.uuid,
 			author_uuid: this.authorUuid,
 			message: this.message,

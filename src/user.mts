@@ -4,38 +4,37 @@ import {db} from './database.mjs';
  * Represents user
  */
 export class User {
-	static #find_stmt = db.prepare(`SELECT * FROM Users WHERE uuid = ?`);
-
-	static #update_stmt = db.prepare(`UPDATE Users SET
-			nickname = :nickname,
-			session_token = :session_token,
-			latest_ip = :latest_ip,
-			updated_at = :updated_at
-		WHERE uuid = :uuid`);
-
-	static #insert_stmt = db.prepare(`INSERT INTO Users (
-            uuid, 
-            nickname, 
-            session_token, 
-            latest_ip, 
-            updated_at,
-            created_at) 
-		VALUES (
-		    :uuid,
-		    :nickname,
-		    :session_token,
-		    :latest_ip,
-		    :updated_at,
-		    :created_at)`);
-
-	static #find_by_nickname_stmt = db.prepare(`SELECT * FROM Users WHERE nickname LIKE ?`);
+	static #stmt = {
+		find: db.prepare(`SELECT * FROM Users WHERE uuid = ?`),
+		update: db.prepare(`UPDATE Users SET
+				nickname = :nickname,
+				session_token = :session_token,
+				latest_ip = :latest_ip,
+				updated_at = :updated_at
+			WHERE uuid = :uuid`),
+		insert: db.prepare(`INSERT INTO Users (
+	            uuid, 
+	            nickname, 
+	            session_token, 
+	            latest_ip, 
+	            updated_at,
+	            created_at) 
+			VALUES (
+			    :uuid,
+			    :nickname,
+			    :session_token,
+			    :latest_ip,
+			    :updated_at,
+			    :created_at)`),
+		findByNickname: db.prepare(`SELECT * FROM Users WHERE nickname LIKE ?`)
+	}
 
 	/**
 	 * Finds user by UUID
 	 * @param uuid User UUID
 	 */
 	static find(uuid: string) : User | undefined {
-		const results = this.#find_stmt.get(uuid);
+		const results = this.#stmt.find.get(uuid);
 		if (!results) return;
 
 		return new User(results);
@@ -46,7 +45,7 @@ export class User {
 	 * @param nickname User nickname
 	 */
 	static findByNickname(nickname: string) : User | undefined {
-		const results = this.#find_by_nickname_stmt.get(nickname);
+		const results = this.#stmt.findByNickname.get(nickname);
 		if (!results) return;
 
 		return new User(results);
@@ -121,7 +120,7 @@ export class User {
 		this.updatedAt = new Date();
 		if (!this.createdAt) {
 			this.createdAt = new Date();
-			User.#insert_stmt.run({
+			User.#stmt.insert.run({
 				uuid: this.uuid,
 				nickname: this.nickname,
 				session_token: this.sessionToken,
@@ -132,7 +131,7 @@ export class User {
 			return true;
 		}
 
-		User.#update_stmt.run({
+		User.#stmt.update.run({
 			uuid: this.uuid,
 			nickname: this.nickname,
 			session_token: this.sessionToken,
