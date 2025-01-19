@@ -90,6 +90,17 @@ export class User {
 	}
 
 	/**
+	 * Returns JSON user string with censored IP
+	 */
+	get json() {
+		return JSON.stringify({
+			uuid: this.uuid,
+			nickname: this.nickname,
+			ip: this.latestIp.replace(/(\d{1,3}).(\d{1,3}).(\d{1,3}).(\d{1,3})/, "$1.*.*.$4"),
+		});
+	}
+
+	/**
 	 * Save user in database
 	 */
 	save() {
@@ -103,7 +114,7 @@ export class User {
 				session_token: this.sessionToken,
 				latest_ip: this.latestIp,
 				updated_at: this.updatedAt.getTime(),
-				createdAt: this.createdAt.getTime(),
+				created_at: this.createdAt.getTime(),
 			});
 			return true;
 		}
