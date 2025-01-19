@@ -102,14 +102,14 @@ export class User {
 	}
 
 	/**
-	 * Returns JSON user string with censored IP
+	 * Returns user data with censored IP
 	 */
-	get json() {
-		return JSON.stringify({
+	get data() {
+		return {
 			uuid: this.uuid,
 			nickname: this.nickname,
 			ip: this.latestIp.replace(/(\d{1,3}).(\d{1,3}).(\d{1,3}).(\d{1,3})/, "$1.*.*.$4"),
-		});
+		};
 	}
 
 	/**

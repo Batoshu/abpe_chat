@@ -53,7 +53,7 @@ function broadcastEvent(event: string, data: any) {
 	});
 }
 
-wsServer.on('connection', ws => {
+wsServer.on('connection', (ws, req) => {
 	let user : User = null;
 	let respond = (token: string, success: boolean, data: string | any) => {
 		let obj : any = {
@@ -82,15 +82,18 @@ wsServer.on('connection', ws => {
 						user = User.create();
 						user.nickname = data.nickname;
 						user.sessionToken = crypto.randomUUID();
-						user.save();
 					} else {
 						if (data.sessionToken && findByNickname.sessionToken !== data.sessionToken)
 							return respond(token, false, `Nickname taken`);
 						else
 							user = findByNickname;
 					}
+
+					user.latestIp = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress;
+					user.save();
+
 					respond(token, true, {
-						user: user.json,
+						user: user.data,
 						sessionToken: data.sessionToken,
 					});
 					break;
