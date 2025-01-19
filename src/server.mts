@@ -1,7 +1,8 @@
 import { config } from './config.mjs';
 import * as routes from './routes/index.mjs';
 import * as http from 'node:http';
-import {WebSocketServer} from 'ws';
+import {WebSocketServer, WebSocket} from 'ws';
+import {User} from './user.mjs';
 
 /* Http Server */
 export const webServer = new http.Server(async (req, res) => {
@@ -42,14 +43,73 @@ export const wsServer = new WebSocketServer({
 	noServer: true,
 });
 
-wsServer.on('error', console.error);
+// All currently connected clients
+const clients = new Set<WebSocket>();
+
+function broadcastEvent(event: string, data: any) {
+	data.event = event;
+	clients.forEach(ws => {
+		ws.send(JSON.stringify(data));
+	});
+}
 
 wsServer.on('connection', ws => {
-	ws.on('error', console.error);
-	ws.on('message', msg => {
+	let user : User = null;
+	let respond = (token: string, success: boolean, data: string | any) => {
+		let obj : any = {
+			success: success
+		}
+		success ? obj.data = data : obj.message = data;
+		ws.send(JSON.stringify(data));
+	}
+	clients.add(ws);
 
+	ws.on('close', () => {
+		clients.delete(ws);
+		if (user)
+			broadcastEvent('user_offline', {user: user});
 	});
+
+	ws.on('message', msg => {
+		try {
+			const {token, action, data} = JSON.parse(msg.toString());
+			switch(action) {
+				case 'login':
+					if (data.nickname?.length < 3)
+						return respond(token, false, `Nickname too short`);
+					const findByNickname = User.findByNickname(data.nickname);
+					if (!findByNickname) {
+						user = User.create();
+						user.nickname = data.nickname;
+						user.sessionToken = crypto.randomUUID();
+						user.save();
+					} else {
+						if (data.sessionToken && findByNickname.sessionToken !== data.sessionToken)
+							return respond(token, false, `Nickname taken`);
+						else
+							user = findByNickname;
+					}
+					respond(token, true, {
+						user: user.json,
+						sessionToken: data.sessionToken,
+					});
+					break;
+				case 'send_message':
+					return respond(token, false, `Not implemented`);
+				case 'fetch_messages':
+					return respond(token, false, `Not implemented`);
+				case 'fetch_user':
+					return respond(token, false, `Not implemented`);
+				default:
+					return respond(token, false, `Unknown action: ${action}`);
+			}
+		} catch(e) {
+			console.error(`Message error`, e);
+		}
+	});
+	ws.on('error', console.error);
 });
+wsServer.on('error', console.error);
 
 /* Web Socket upgrade */
 webServer.on('upgrade', (req, socket, head) => {
