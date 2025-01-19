@@ -1,3 +1,233 @@
+:root {
+    /** Source: https://colorffy.com/dark-theme-generator?colors=55e690-121212 **/
+    /** Dark theme primary colors */
+    --primary-a0: #55e690;
+    --primary-a1: #6fe99c;
+    --primary-a2: #85eda8;
+    --primary-a3: #99f0b5;
+    --primary-a4: #acf3c1;
+    --primary-a5: #bdf5cd;
+
+    /** Dark theme surface colors */
+    --surface-a0: #121212;
+    --surface-a1: #282828;
+    --surface-a2: #3f3f3f;
+    --surface-a3: #575757;
+    --surface-a4: #717171;
+    --surface-a5: #8b8b8b;
+
+    /** Dark theme tonal surface colors */
+    --tonal-a0: #1b241d;
+    --tonal-a1: #303932;
+    --tonal-a2: #464e48;
+    --tonal-a3: #5e6560;
+    --tonal-a4: #777d78;
+    --tonal-a5: #919691;
+}
+
 * {
-    all: revert;
+    all: unset;
+}
+
+head {
+    display: none;
+}
+
+/** Body & app container **/
+body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    background: var(--surface-a0);
+    display: grid;
+    place-items: stretch;
+    color: #fff;
+    font-family: sans-serif;
+}
+
+#app {
+    display: grid;
+    place-items: stretch;
+    grid-template-areas:
+            "chat sidebar"
+            "send-box sidebar";
+    grid-auto-columns: 21fr 3fr;
+    grid-auto-rows: 22fr 2fr;
+    overflow: hidden;
+}
+
+/** Chat window **/
+#chat-window {
+    grid-area: chat;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 1rem;
+    overflow-y: scroll;
+}
+
+#chat-window > li {
+    margin: 0.5rem 1rem;
+}
+
+#chat-window > li.system {
+    text-align: center;
+    margin: 2rem;
+    color: var(--primary-a4);
+}
+
+#chat-window > li > .username {
+    display: block;
+    padding-bottom: 0.3rem;
+    font-weight: bold;
+}
+
+#chat-window > li > .username > .datetime {
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+    color: var(--tonal-a5);
+}
+
+#chat-window > li > .message {
+    font-size: 1rem;
+}
+
+/** Chat sidebar **/
+#chat-sidebar {
+    grid-area: sidebar;
+    background: var(--surface-a1);
+    padding: 1rem;
+}
+
+#chat-sidebar > #chat-connection-status {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+#chat-sidebar > #chat-online-list {
+
+}
+
+#chat-sidebar > #chat-online-list > li {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/** Chat send box **/
+#chat-send-box {
+    grid-area: send-box;
+    padding: 12px;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+#chat-send-box > #chat-message-input {
+    width: 100%;
+    height: 100%;
+    padding: 0 1rem;
+}
+
+/** System notifications **/
+#notification-box {
+    text-align: center;
+    cursor: pointer;
+    position: absolute;
+    min-width: 300px;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 4px black;
+    font-weight: bold;
+}
+
+#notification-box.error {
+    background: rgb(161,0,0);
+    background: linear-gradient(0deg, rgba(161,0,0,1) 0%, rgba(219,0,0,1) 100%);
+}
+
+/** Login overlay **/
+#login-overlay {
+    display: flex;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    backdrop-filter: blur(3px);
+}
+
+#login-overlay > div {
+    background: var(--surface-a1);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--surface-a2);
+    text-align: center;
+    justify-content: center;
+}
+
+#login-overlay > div > h1 {
+    display: block;
+    margin-bottom: 2rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: var(--primary-a0);
+}
+
+/** Misc. **/
+.text-success {
+    color: #55e690;
+}
+
+.text-error {
+    color: #e01b24;
+}
+
+.text-alert {
+    color: #f6d32d;
+}
+
+.hidden {
+    display: none !important;
+}
+
+input {
+    display: block;
+    background: var(--surface-a2);
+    border: 1px solid var(--surface-a3);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+}
+
+input:active, input:focus {
+    border: 1px solid var(--surface-a4);
+}
+
+input::placeholder {
+    color: var(--surface-a5);
+}
+
+button {
+    display: block;
+    padding: 0.5rem 1rem;
+    background: var(--surface-a2);
+    border: 1px solid var(--surface-a3);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 150ms ease-in-out;
+}
+
+button:hover {
+    background: var(--surface-a3);
+}
+
+button:active {
+    background: var(--surface-a3);
+    border: 1px solid var(--surface-a4);
 }

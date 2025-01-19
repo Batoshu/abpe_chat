@@ -9,6 +9,35 @@
         <script src="./scripts.js" type="application/javascript"></script>
     </head>
     <body>
+        <div id="app">
+            <ul id="chat-window">
+                <li>
+                    <span class="username">User <span class="datetime">Today at 16:28</span></span>
+                    <span class="message">Some example message</span>
+                </li>
+                <li class="system" id="chat-top-message">
+                    Loading more messages...
+                </li>
+            </ul>
+            <div id="chat-sidebar">
+                <h1 id="chat-connection-status" class="text-alert">Connecting...</h1>
+                <ul id="chat-online-list">
+                    <li>Someone</li>
+                    <li>Someone else</li>
+                </ul>
 
+            </div>
+            <div id="chat-send-box">
+                <input type="text" id="chat-message-input" placeholder="Type your message here..." />
+                <button id="chat-send-button">Send</button>
+            </div>
+        </div>
+        <div id="login-overlay">
+            <div>
+                <h1>Choose your username</h1>
+                <input type="text" id="login-username" placeholder="Awesome racoon" />
+                <button id="login-button">Enter</button>
+            </div>
+        </div>
     </body>
 </html>
