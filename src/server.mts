@@ -42,12 +42,21 @@ export const wsServer = new WebSocketServer({
 	noServer: true,
 });
 
+wsServer.on('error', console.error);
+
+wsServer.on('connection', ws => {
+	ws.on('error', console.error);
+	ws.on('message', msg => {
+
+	});
+});
+
 /* Web Socket upgrade */
 webServer.on('upgrade', (req, socket, head) => {
 	const {pathname} = new URL(req.url, `ws://${config.host}:${config.port}`);
 	if (pathname === '/socket') {
-		wsServer.handleUpgrade(req, socket, head, function done(ws) {
-			ws.emit('connection', ws, req);
+		wsServer.handleUpgrade(req, socket, head, ws => {
+			wsServer.emit('connection', ws, req);
 		});
 	} else {
 		socket.destroy();
