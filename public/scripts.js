@@ -75,44 +75,66 @@
         }
 
         constructor(data) {
-            if (User.users.has(data.uuid)) return;
+            if (User.users.has(data.uuid)) User.users.get(data.uuid);
 
             this.uuid = data.uuid;
             this.nickname = data.nickname;
             this.ip = data.ip;
-            this.status = data.status;
+            this.status = null;
 
             this.element = document.createElement('li');
             User.users.set(this.uuid, this);
         }
 
-        updateStatus(status) {
-            this.status = status;
-            this.render().catch(console.error);
+        setOffline() {
+            this.status = 'offline';
+            this.render();
+        }
+
+        setOnline() {
+            this.status = 'online';
+            this.render();
         }
 
         async render() {
             const element = this.element;
 
             element.textContent = this.nickname;
+            element.className = this.status === 'online' ? 'text-success' :
+                this.status === 'offline' ? 'text-error' : 'text-alert';
             return element;
         }
     }
 
     /* Fetched message */
     class Message {
+        static OLDEST_TIMESTAMP = null;
+
         static messages = new Set();
 
-        static async fetchMessages(limit = 50, before = undefined) {
-            // TODO: Implement message fetcher
+        static async fetchMessages(limit = 50, before = Message.OLDEST_TIMESTAMP) {
+            const results = await client.send('fetch_messages', {before: before?.getTime() || Date.now(), limit: limit});
+            if (results.success) {
+                results.data.messages.forEach(message => {
+                    let m = new Message(message);
+                    ui.addMessage(m);
+                    m.render().catch(console.error);
+                });
+            } else {
+                ui.alert(results.message, 'error');
+            }
         }
 
         constructor(data) {
             this.uuid = data.uuid;
-            this.userUuid = data.userUuid;
-            this.author = null;
+            this.authorUuid = data.authorUuid;
+            this.author = new User(data.author);
             this.message = data.message;
             this.timestamp = new Date(data.timestamp);
+
+            if (!Message.OLDEST_TIMESTAMP || Message.OLDEST_TIMESTAMP < this.timestamp) {
+                Message.OLDEST_TIMESTAMP = this.timestamp;
+            }
 
             this.element = document.createElement('li');
             Message.messages.add(this);
@@ -125,7 +147,7 @@
         async render() {
             const element = this.element;
             if (!this.author)
-                this.author = User.get(this.userUuid);
+                this.author = await User.get(this.authorUuid);
 
             element.innerHTML = `<span class="username">
                     ${this.author.nickname ?? 'Unknown Author'} 
@@ -185,8 +207,21 @@
                 // Save nickname and session token
                 localStorage.setItem('nickname', nickname);
                 localStorage.setItem('sessionToken', results.data.sessionToken);
+
+                // Load latest messages
+                await Message.fetchMessages(50);
             } else {
                 ui.alert(results.message, 'error');
+            }
+        }
+
+        async message(message) {
+            let results = await this.send('send_message', {message: message});
+            if (results.success) {
+                return true;
+            } else {
+                ui.alert(results.message, 'error');
+                return false;
             }
         }
 
@@ -233,13 +268,27 @@
             ui.setConnectionState('disconnected');
         }
 
-        #handleMessage(message) {
-            console.log(message.data);
+        async #handleMessage(message) {
             if (!message.data) return;
             const data = JSON.parse(message.data);
 
-            if (!data.token) return;
-            this.dispatchEvent(new CustomEvent(data.token, {detail: data}));
+            if (data.event) {
+                switch(data.event) {
+                    case 'message':
+                        let m = new Message(data.message);
+                        ui.addMessage(m);
+                        m.render().catch(console.error);
+                        break;
+                    case 'user_offline':
+                        new User(data.user).setOffline();
+                        break;
+                    case 'user_online':
+                        new User(data.user).setOnline();
+                        break;
+                }
+            } else if (data.token) {
+                this.dispatchEvent(new CustomEvent(data.token, {detail: data}));
+            }
         }
     }
 
@@ -252,13 +301,26 @@
             await client.login(localStorage.getItem('nickname'), localStorage.getItem('sessionToken'));
         }
 
-        // Handle login button
+        // Handle login form
         document.querySelector(`#login-form`).addEventListener('submit', e => {
             e.preventDefault();
             const nickname = document.querySelector('#login-username').value;
             if (!nickname || nickname.length < 3) return ui.alert('Nickname too short', 'error');
 
             client.login(nickname).catch(console.error);
+        });
+
+        // Handle send message form
+        document.querySelector(`#send-message-form`).addEventListener('submit', e => {
+            e.preventDefault();
+            const messageInput = document.querySelector('#chat-message-input')
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            client.message(message).catch(console.error).then(success => {
+               if (success)
+                   messageInput.value = '';
+            });
         });
     });
     window.ui = ui;

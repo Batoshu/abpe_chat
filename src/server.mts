@@ -3,6 +3,7 @@ import * as routes from './routes/index.mjs';
 import * as http from 'node:http';
 import {WebSocketServer, WebSocket} from 'ws';
 import {User} from './user.mjs';
+import {Message} from './message.mjs';
 
 /* Http Server */
 export const webServer = new http.Server(async (req, res) => {
@@ -99,9 +100,21 @@ wsServer.on('connection', (ws, req) => {
 					});
 					break;
 				case 'send_message':
-					return respond(token, false, `Not implemented`);
+					if (!user) return respond(token, false, `User not logged in`);
+					if (!data.message) return respond(token, false, `Message empty`);
+					let message = Message.create();
+					message.authorUuid = user.uuid;
+					message.message = data.message;
+					message.save();
+					broadcastEvent('message', {message: message.data});
+					respond(token, true, {
+						message: message
+					});
+					break;
 				case 'fetch_messages':
-					return respond(token, false, `Not implemented`);
+					const before = new Date(data.before);
+					const messages = Message.fetchBefore(before);
+					return respond(token, true, {messages: messages.map(m => m.data)});
 				case 'fetch_user':
 					return respond(token, false, `Not implemented`);
 				default:

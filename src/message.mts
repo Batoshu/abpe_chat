@@ -1,4 +1,5 @@
 import {db} from './database.mjs';
+import {User} from './user.mjs';
 
 /**
  * Represents message
@@ -23,7 +24,7 @@ export class Message {
 			    :message,
 			    :updated_at,
 			    :created_at)`),
-		fetch: db.prepare(`SELECT * FROM Messages WHERE created_at < :before ORDER BY created_at DESC LIMIT :limit`)
+		fetch: db.prepare(`SELECT * FROM Messages WHERE created_at < :before ORDER BY created_at LIMIT :limit`)
 	}
 
 	/**
@@ -88,6 +89,16 @@ export class Message {
 		this.message = data.message;
 		this.createdAt = data.created_at ? new Date(data.created_at) : null;
 		this.updatedAt = data.updated_at ? new Date(data.updated_at) : null;
+	}
+
+	get data() {
+		return {
+			uuid: this.uuid,
+			authorUuid: this.authorUuid,
+			message: this.message,
+			timestamp: this.createdAt.getTime(),
+			author: User.find(this.authorUuid).data,
+		}
 	}
 
 	/**
