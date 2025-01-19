@@ -130,7 +130,7 @@ body {
 }
 
 /** System notifications **/
-#notification-box {
+.notification-box {
     text-align: center;
     cursor: pointer;
     position: absolute;
@@ -144,7 +144,7 @@ body {
     font-weight: bold;
 }
 
-#notification-box.error {
+.notification-box.error {
     background: rgb(161,0,0);
     background: linear-gradient(0deg, rgba(161,0,0,1) 0%, rgba(219,0,0,1) 100%);
 }
