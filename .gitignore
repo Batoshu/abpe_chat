@@ -1,4 +1,4 @@
 .idea
 node_modules
 .env
-chat.db
+chat.db*
