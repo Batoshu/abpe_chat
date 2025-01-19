@@ -97,8 +97,8 @@ export class User {
 		this.nickname = data.nickname;
 		this.sessionToken = data.session_token;
 		this.latestIp = data.latest_ip;
-		this.createdAt = new Date(data.created_at);
-		this.updatedAt = new Date(data.updated_at);
+		this.createdAt = data.created_at ? new Date(data.created_at) : null;
+		this.updatedAt = data.updated_at ? new Date(data.updated_at) : null;
 	}
 
 	/**

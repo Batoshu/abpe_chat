@@ -86,8 +86,8 @@ export class Message {
 		this.uuid = data.uuid;
 		this.authorUuid = data.author_uuid;
 		this.message = data.message;
-		this.createdAt = new Date(data.created_at);
-		this.updatedAt = new Date(data.updated_at);
+		this.createdAt = data.created_at ? new Date(data.created_at) : null;
+		this.updatedAt = data.updated_at ? new Date(data.updated_at) : null;
 	}
 
 	/**
