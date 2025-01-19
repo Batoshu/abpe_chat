@@ -28,12 +28,25 @@ export class User {
 		    :updated_at,
 		    :created_at)`);
 
+	static #find_by_nickname_stmt = db.prepare(`SELECT * FROM Users WHERE nickname LIKE ?`);
+
 	/**
 	 * Finds user by UUID
 	 * @param uuid User UUID
 	 */
 	static find(uuid: string) : User | undefined {
 		const results = this.#find_stmt.get(uuid);
+		if (!results) return;
+
+		return new User(results);
+	}
+
+	/**
+	 * Finds user by nickname
+	 * @param nickname User nickname
+	 */
+	static findByNickname(nickname: string) : User | undefined {
+		const results = this.#find_by_nickname_stmt.get(nickname);
 		if (!results) return;
 
 		return new User(results);
