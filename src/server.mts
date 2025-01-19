@@ -57,10 +57,11 @@ wsServer.on('connection', (ws, req) => {
 	let user : User = null;
 	let respond = (token: string, success: boolean, data: string | any) => {
 		let obj : any = {
+			token: token,
 			success: success
 		}
 		success ? obj.data = data : obj.message = data;
-		ws.send(JSON.stringify(data));
+		ws.send(JSON.stringify(obj));
 	}
 	clients.add(ws);
 
@@ -94,7 +95,7 @@ wsServer.on('connection', (ws, req) => {
 
 					respond(token, true, {
 						user: user.data,
-						sessionToken: data.sessionToken,
+						sessionToken: user.sessionToken,
 					});
 					break;
 				case 'send_message':
