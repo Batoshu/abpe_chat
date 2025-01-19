@@ -19,6 +19,14 @@
             alert.onclick = remove;
             if (!persistent)
                 timeout = setTimeout(remove, 6000);
+        },
+        hideLoginOverlay() {
+            const overlay = document.querySelector('#login-overlay');
+            overlay.classList.add('hidden');
+        },
+        enableLoginButton() {
+            const button = document.querySelector('#login-button');
+            button.removeAttribute('disabled');
         }
     };
 
