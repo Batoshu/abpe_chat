@@ -46,6 +46,7 @@ export const wsServer = new WebSocketServer({
 
 // All currently connected clients
 const clients = new Set<WebSocket>();
+const online = new Set<User>();
 
 function broadcastEvent(event: string, data: any) {
 	data.event = event;
@@ -68,8 +69,10 @@ wsServer.on('connection', (ws, req) => {
 
 	ws.on('close', () => {
 		clients.delete(ws);
-		if (user)
-			broadcastEvent('user_offline', {user: user});
+		if (user) {
+			online.delete(user);
+			broadcastEvent('update_online', {online: Array.from(online).map(u => u.data)});
+		}
 	});
 
 	ws.on('message', msg => {
@@ -93,12 +96,14 @@ wsServer.on('connection', (ws, req) => {
 
 					user.latestIp = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress;
 					user.save();
+					online.add(user);
 
-					respond(token, true, {
+					broadcastEvent('update_online', {online: Array.from(online).map(u => u.data)});
+
+					return respond(token, true, {
 						user: user.data,
-						sessionToken: user.sessionToken,
+						sessionToken: user.sessionToken
 					});
-					break;
 				case 'send_message':
 					if (!user) return respond(token, false, `User not logged in`);
 					if (!data.message) return respond(token, false, `Message empty`);
@@ -106,11 +111,12 @@ wsServer.on('connection', (ws, req) => {
 					message.authorUuid = user.uuid;
 					message.message = data.message;
 					message.save();
+
 					broadcastEvent('message', {message: message.data});
-					respond(token, true, {
+
+					return respond(token, true, {
 						message: message
 					});
-					break;
 				case 'fetch_messages':
 					const before = new Date(data.before);
 					const messages = Message.fetchBefore(before);

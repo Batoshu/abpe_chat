@@ -54,13 +54,12 @@
             box.insertBefore(message.element, box.firstChild);
         },
         refreshUsers() {
-            const users = User.users.values();
             const list = document.querySelector('#chat-online-list');
             list.innerHTML = '';
-            users.forEach(user => {
-               list.append(user.element);
-               user.render().catch(console.error);
-            });
+            for(const [_, user] of User.users) {
+                list.append(user.element);
+                user.render().catch(console.error);
+            }
         }
     };
 
@@ -79,11 +78,12 @@
 
             this.uuid = data.uuid;
             this.nickname = data.nickname;
-            this.ip = data.ip;
+            this.ip = data.latestIp;
             this.status = null;
 
             this.element = document.createElement('li');
             User.users.set(this.uuid, this);
+            ui.refreshUsers();
         }
 
         setOffline() {
@@ -200,9 +200,7 @@
             if (results.success) {
                 ui.hideLoginOverlay();
                 ui.alert(`Logged in as ${nickname}`, 'success');
-
-                if (!await User.get(results.data.user.uuid)) new User(results.data.user);
-                ui.refreshUsers();
+                new User(results.data.user);
 
                 // Save nickname and session token
                 localStorage.setItem('nickname', nickname);
@@ -279,11 +277,12 @@
                         ui.addMessage(m);
                         m.render().catch(console.error);
                         break;
-                    case 'user_offline':
-                        new User(data.user).setOffline();
-                        break;
-                    case 'user_online':
-                        new User(data.user).setOnline();
+                    case 'update_online':
+                        const online = new Set(data.online);
+                        console.log(online);
+                        User.users.forEach(u => u.setOffline());
+                        online.forEach(u => new User(u).setOnline());
+
                         break;
                 }
             } else if (data.token) {
