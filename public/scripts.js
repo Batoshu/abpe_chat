@@ -253,7 +253,7 @@
         }
 
         // Handle login button
-        document.querySelector(`#login-button`).addEventListener('click', e => {
+        document.querySelector(`#login-form`).addEventListener('submit', e => {
             e.preventDefault();
             const nickname = document.querySelector('#login-username').value;
             if (!nickname || nickname.length < 3) return ui.alert('Nickname too short', 'error');
