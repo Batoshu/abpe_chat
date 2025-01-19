@@ -142,6 +142,7 @@ body {
     border-radius: 0.5rem;
     box-shadow: 0 0 4px black;
     font-weight: bold;
+    z-index: 9999;
 }
 
 .notification-box.error {
