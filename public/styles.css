@@ -50,7 +50,7 @@ body {
     place-items: stretch;
     grid-template-areas:
             "chat sidebar"
-            "send-box sidebar";
+            "send-box copyright";
     grid-auto-columns: 21fr 3fr;
     grid-auto-rows: 22fr 2fr;
     overflow: hidden;
@@ -127,6 +127,34 @@ body {
     width: 100%;
     height: 100%;
     padding: 0 1rem;
+}
+
+/** Copyright text */
+#copyright {
+    grid-area: copyright;
+    background: var(--surface-a1);
+    display: flex;
+    height: 100%;
+    justify-content: center;
+}
+
+#copyright > span {
+    display: inline-block;
+    align-self: flex-end;
+    margin-bottom: 0.5rem;
+    font-size: 0.7rem;
+    color: var(--tonal-a5);
+    text-align: center;
+}
+
+#copyright > span > a {
+    cursor: pointer;
+    color: var(--primary-a5);
+    transition: all 200ms ease-in-out;
+}
+
+#copyright > span > a:hover {
+    color: var(--primary-a0);
 }
 
 /** System notifications **/
