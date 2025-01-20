@@ -97,16 +97,13 @@ body {
     grid-area: sidebar;
     background: var(--surface-a1);
     padding: 1rem;
+    overflow-y: scroll;
 }
 
 #chat-sidebar > #chat-connection-status {
     display: block;
     font-size: 1.5rem;
     margin-bottom: 1rem;
-}
-
-#chat-sidebar > #chat-online-list {
-
 }
 
 #chat-sidebar > #chat-online-list > li {
