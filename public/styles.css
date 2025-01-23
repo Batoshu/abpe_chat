@@ -1,28 +1,28 @@
 :root {
     /** Source: https://colorffy.com/dark-theme-generator?colors=55e690-121212 **/
     /** Dark theme primary colors */
-    --primary-a0: #55e690;
-    --primary-a1: #6fe99c;
-    --primary-a2: #85eda8;
-    --primary-a3: #99f0b5;
-    --primary-a4: #acf3c1;
-    --primary-a5: #bdf5cd;
+    --primary-a0: #ff7800;
+    --primary-a1: #ff882e;
+    --primary-a2: #ff974b;
+    --primary-a3: #ffa665;
+    --primary-a4: #ffb57e;
+    --primary-a5: #ffc497;
 
     /** Dark theme surface colors */
-    --surface-a0: #121212;
-    --surface-a1: #282828;
-    --surface-a2: #3f3f3f;
-    --surface-a3: #575757;
-    --surface-a4: #717171;
-    --surface-a5: #8b8b8b;
+    --surface-a0: #eee;
+    --surface-a1: #ddd;
+    --surface-a2: #fff;
+    --surface-a3: #fff;
+    --surface-a4: #fff;
+    --surface-a5: #fff;
 
     /** Dark theme tonal surface colors */
-    --tonal-a0: #1b241d;
-    --tonal-a1: #303932;
-    --tonal-a2: #464e48;
-    --tonal-a3: #5e6560;
-    --tonal-a4: #777d78;
-    --tonal-a5: #919691;
+    --tonal-a0: #fff2e7;
+    --tonal-a1: #fff3ea;
+    --tonal-a2: #fff5ec;
+    --tonal-a3: #fff6ef;
+    --tonal-a4: #fff8f2;
+    --tonal-a5: #fff9f4;
 }
 
 * {
@@ -41,7 +41,7 @@ body {
     background: var(--surface-a0);
     display: grid;
     place-items: stretch;
-    color: #fff;
+    color: #000;
     font-family: sans-serif;
 }
 
@@ -73,7 +73,7 @@ body {
 #chat-window > li.system {
     text-align: center;
     margin: 2rem;
-    color: var(--primary-a4);
+    color: var(--primary-a0);
 }
 
 #chat-window > li > .username {
@@ -85,7 +85,7 @@ body {
 #chat-window > li > .username > .datetime {
     margin-left: 0.5rem;
     font-size: 0.7rem;
-    color: var(--tonal-a5);
+    color: gray;
 }
 
 #chat-window > li > .message {
@@ -140,13 +140,13 @@ body {
     align-self: flex-end;
     margin-bottom: 0.5rem;
     font-size: 0.7rem;
-    color: var(--tonal-a5);
+    color: #000;
     text-align: center;
 }
 
 #copyright > span > a {
     cursor: pointer;
-    color: var(--primary-a5);
+    color: var(--primary-a2);
     transition: all 200ms ease-in-out;
 }
 
@@ -234,6 +234,7 @@ input {
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
     margin-bottom: 1rem;
+    color: #000;
 }
 
 input:active, input:focus {
@@ -271,7 +272,7 @@ button:disabled, button:disabled:hover, button:disabled:focus, button:disabled:a
 }
 
 li.online {
-    color: white;
+    color: black;
 }
 
 li.offline {
